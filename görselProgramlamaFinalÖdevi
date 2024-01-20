@@ -1,1 +1,198 @@
+// System: Temel .NET sınıflarını içeren ana isim alanıdır.
+using System;
 
+// System.Collections.Generic: Genel koleksiyon sınıflarını içeren isim alanıdır.
+using System.Collections.Generic;
+
+// System.IO: Giriş/çıkış işlemleri için kullanılan sınıfları içeren isim alanıdır.
+using System.IO;
+
+// Newtonsoft.Json: JSON veri formatını işlemek ve oluşturmak için kullanılan popüler bir kütüphanedir.
+using Newtonsoft.Json;
+
+
+// Ucak sınıfı, uçak özelliklerini temsil eder.
+public class Ucak
+{
+    public string Model { get; set; } // Uçağın modeli
+    public string Marka { get; set; } // Uçağın markası
+    public string SeriNo { get; set; }// Uçağın seri numarası
+    public int KoltukKapasitesi { get; set;}// Uçağın koltuk kapasitesi
+}
+
+
+// Lokasyon sınıfı, ülke, şehir ve havaalanı bilgilerini temsil eder.
+public class Lokasyon
+{
+    public string Ulke { get; set; }// Lokasyonun bulunduğu ülke
+    public string Sehir { get; set; } // Lokasyonun bulunduğu şehir
+    public string Havaalani { get; set; }// Lokasyonun havaalanı adı
+    public bool Aktif { get; set; }// Lokasyonun aktif olup olmadığını belirten bayrak
+}
+
+// Ucus sınıfı, uçuş bilgilerini temsil eder.
+public class Ucus
+{
+    public Lokasyon KalkisYeri { get; set; } // Kalkış yerinin lokasyon bilgisi
+    public Lokasyon VarisYeri { get; set; } // Varış yerinin lokasyon bilgisi
+    public DateTime Saat { get; set;} // Uçuşun saati
+    public Ucak UcakBilgisi { get; set; } // Uçağın bilgileri
+}
+
+// Rezervasyon sınıfı, rezervasyon bilgilerini temsil eder.
+public class Rezervasyon
+{
+    public Ucus UcusBilgisi { get; set; } // Rezervasyon yapılan uçuşun bilgisi
+    public string Ad { get; set; }// Yolcunun adı
+    public string Soyad { get; set; } // Yolcunun soyadı
+    public int Yas { get; set; } // Yolcunun yaşı
+}
+
+
+// Uygulama  sınıfı, uygulamanın temel işlevlerini içerir.
+public class Uygulama
+{
+    public List<Ucak> Ucaklar { get; set; } // Uygulamadaki uçakları tutan liste
+    public List<Lokasyon> Lokasyonlar { get; set; }// Uygulamadaki lokasyonları tutan liste
+    public List<Ucus> Ucuslar { get; set; }// Uygulamadaki uçuşları tutan liste
+    public List<Rezervasyon> Rezervasyonlar { get; set; } // Uygulamadaki rezervasyonları tutan liste
+}
+
+  // Uygulama sınıfının yapıcı metodu, uygulama başlatıldığında çağrılır.
+public Uygulama()
+{
+    Ucaklar = new List<Ucak>(); // Uçakları tutan liste başlatılır
+    Lokasyonlar = new List<Lokasyon>();// Lokasyonları tutan liste başlatılır
+    Ucuslar = new List<Ucus>();// Uçuşları tutan liste başlatılır
+    Rezervasyonlar = new List<Rezervasyon>();// Rezervasyonları tutan liste başlatılır
+}
+
+
+// Uçak eklemek için metot
+public void UcakEkle(Ucak ucak)
+{
+    Ucaklar.Add(ucak);
+    Console.WriteLine("Uçak başarıyla eklendi.");
+}
+
+// Lokasyon eklemek için metot
+public void LokasyonEkle(Lokasyon lokasyon)
+{
+    Lokasyonlar.Add(lokasyon);
+    Console.WriteLine("Lokasyon başarıyla eklendi.");
+}
+
+// Uçuş eklemek için metot
+public void UcusEkle(Ucus ucus)
+{
+    Ucuslar.Add(ucus);
+    Console.WriteLine("Uçuş başarıyla eklendi.");
+}
+
+// Rezervasyon yapmak için metot
+public void RezervasyonYap(Rezervasyon rezervasyon)
+{
+    // Koltuk kontrolü yapılır
+    if (KoltukKontrol(rezervasyon.UcusBilgisi.UcakBilgisi))
+    {
+        Rezervasyonlar.Add(rezervasyon);
+        Console.WriteLine("Rezervasyon başarıyla yapıldı.");
+    }
+    else
+    {
+        Console.WriteLine("Rezervasyon yapılamadı. Koltuk kapasitesi dolu.");
+    }
+}
+
+// Koltuk kontrolü yapmak için özel metot
+private bool KoltukKontrol(Ucak ucak)
+{
+    // Belirli bir uçağa ait rezervasyon sayısı alınır
+    int rezervasyonSayisi = Rezervasyonlar.Count(r => r.UcusBilgisi.UcakBilgisi == ucak);
+
+    // Rezervasyon sayısı, uçağın koltuk kapasitesinden küçükse true, aksi halde false döner
+    return rezervasyonSayisi < ucak.KoltukKapasitesi;
+}
+
+// Tüm bilgileri JSON dosyasına kaydetmek için metot
+public void TumBilgileriKaydet(string dosyaAdi)
+{
+    // Uygulamadaki tüm bilgileri içeren bir anonim nesne oluşturulur
+    var tumBilgiler = new
+    {
+        Ucaklar = Ucaklar,
+        Lokasyonlar = Lokasyonlar,
+        Ucuslar = Ucuslar,
+        Rezervasyonlar = Rezervasyonlar
+    };
+
+    // JSON formatına dönüştürülerek belirtilen dosyaya yazılır
+    string json = JsonConvert.SerializeObject(tumBilgiler, Formatting.Indented);
+    File.WriteAllText(dosyaAdi, json);
+    Console.WriteLine("Tüm bilgiler JSON dosyasına kaydedildi.");
+}
+// Tüm bilgileri JSON dosyasından yüklemek için metot
+public void TumBilgileriYukle(string dosyaAdi)
+{
+    // Belirtilen dosya varsa işlemlere devam edilir
+    if (File.Exists(dosyaAdi))
+    {
+        // JSON dosyasının içeriği okunur
+        string json = File.ReadAllText(dosyaAdi);
+
+        // JSON içeriği dinamik bir nesneye dönüştürülür
+        var tumBilgiler = JsonConvert.DeserializeObject<dynamic>(json);
+
+        // Uygulamadaki listelere JSON içeriğindeki bilgiler atanır
+        Ucaklar = JsonConvert.DeserializeObject<List<Ucak>>(tumBilgiler.Ucaklar.ToString());
+        Lokasyonlar = JsonConvert.DeserializeObject<List<Lokasyon>>(tumBilgiler.Lokasyonlar.ToString());
+        Ucuslar = JsonConvert.DeserializeObject<List<Ucus>>(tumBilgiler.Ucuslar.ToString());
+        Rezervasyonlar = JsonConvert.DeserializeObject<List<Rezervasyon>>(tumBilgiler.Rezervasyonlar.ToString());
+
+        Console.WriteLine("Tüm bilgiler JSON dosyasından yüklendi.");
+    }
+    else
+    {
+        Console.WriteLine("Belirtilen dosya bulunamadı.");
+    }
+}
+
+
+class Program
+{
+    static void Main()
+    {
+        // Uygulama sınıfından bir örnek oluşturulur
+        Uygulama uygulama = new Uygulama();
+
+        // Örnek uçaklar oluşturulup uygulamaya eklenir
+        Ucak ucak1 = new Ucak { Model = "Boeing 737", Marka = "Boeing", SeriNo = "12345", KoltukKapasitesi = 150 };
+        Ucak ucak2 = new Ucak { Model = "Airbus A320", Marka = "Airbus", SeriNo = "67890", KoltukKapasitesi = 180 };
+        uygulama.UcakEkle(ucak1);
+        uygulama.UcakEkle(ucak2);
+
+        // Örnek lokasyonlar oluşturulup uygulamaya eklenir
+        Lokasyon lokasyon1 = new Lokasyon { Ulke = "Türkiye", Sehir = "İstanbul", Havaalani = "IST", Aktif = true };
+        Lokasyon lokasyon2 = new Lokasyon { Ulke = "ABD", Sehir = "New York", Havaalani = "JFK", Aktif = true };
+        uygulama.LokasyonEkle(lokasyon1);
+        uygulama.LokasyonEkle(lokasyon2);
+
+        // Örnek uçuşlar oluşturulup uygulamaya eklenir
+        Ucus ucus1 = new Ucus { KalkisYeri = lokasyon1, VarisYeri = lokasyon2, Saat = DateTime.Now.AddHours(2), UcakBilgisi = ucak1 };
+        Ucus ucus2 = new Ucus { KalkisYeri = lokasyon2, VarisYeri = lokasyon1, Saat = DateTime.Now.AddHours(4), UcakBilgisi = ucak2 };
+        uygulama.UcusEkle(ucus1);
+        uygulama.UcusEkle(ucus2);
+
+        // Örnek rezervasyonlar oluşturulup uygulamaya eklenir
+        Rezervasyon rezervasyon1 = new Rezervasyon { UcusBilgisi = ucus1, Ad = "Ahmet", Soyad = "Yılmaz", Yas = 25 };
+        Rezervasyon rezervasyon2 = new Rezervasyon { UcusBilgisi = ucus2, Ad = "Ayşe", Soyad = "Kara", Yas = 30 };
+        uygulama.RezervasyonYap(rezervasyon1);
+        uygulama.RezervasyonYap(rezervasyon2);
+
+        // Tüm bilgiler JSON dosyasına kaydedilir
+        uygulama.TumBilgileriKaydet("tumBilgiler.json");
+
+        // JSON dosyasından tüm bilgiler yüklenir
+        uygulama.TumBilgileriYukle("tumBilgiler.json");
+    }
+}
