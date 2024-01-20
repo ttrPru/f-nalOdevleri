@@ -1,1 +1,147 @@
+import java.io.*;
+import java.util.*;
 
+// Serializable arabirimini uygulayan Ders sınıfı.
+class Ders implements Serializable {
+    // serialVersionUID, sınıfın serileştirme/deserileştirme sırasında uyumsuzlukları önlemek için kullanılır.
+    private static final long serialVersionUID = 1L;
+    
+    // Dersin kodu
+    // Dersin adı
+    // Dersin hangi dönemde okutulduğu bilgisi
+    // Dersi öğreten öğretim görevlisi
+    // Ders sınıfının parametresiz kurucusu
+    public String dersKodu;
+    public String dersAd;
+    public String dersDonem;
+    public String ogretimGorevlisi;
+
+    @Override
+    public String toString() {
+        return "DersKodu: " + dersKodu + ", DersAd: " + dersAd + ", DersDonem: " + dersDonem +
+                ", OgretimGorevlisi: " + ogretimGorevlisi;
+    }
+}
+
+class Ogrenci implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    public String ogrenciNo;
+    public String ogrenciAd;
+    public String ogrenciSoyad;
+    public String ogrenciBolum;
+    public ArrayList<String> ogrenciDersler = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return "OgrenciNo: " + ogrenciNo + ", OgrenciAd: " + ogrenciAd + ", OgrenciSoyad: " +
+                ogrenciSoyad + ", OgrenciBolum: " + ogrenciBolum + ", OgrenciDersler: " +
+                ogrenciDersler.toString();
+    }
+}
+
+class OgretimGorevlisi implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    public String ogretmenNo;
+    public String ad;
+    public String soyad;
+    public String bolum;
+    public ArrayList<String> verdigiDersler = new ArrayList<>();
+
+    @Override
+    public String toString() {
+        return "OgretmenNo: " + ogretmenNo + ", Ad: " + ad + ", Soyad: " + soyad +
+                ", Bolum: " + bolum + ", VerdigiDersler: " + verdigiDersler.toString();
+    }
+}
+
+public class Uygulama {
+    private ArrayList<Ders> dersListesi = new ArrayList<>();
+    private ArrayList<Ogrenci> ogrenciListesi = new ArrayList<>();
+    private ArrayList<OgretimGorevlisi> ogretimGorevlisiListesi = new ArrayList<>();
+
+    public static void main(String[] args) {
+        Uygulama uygulama = new Uygulama();
+
+        uygulama.testVerileriEkle();
+
+       
+        uygulama.tumBilgileriKaydet("tumBilgiler.json");
+        uygulama.tumBilgileriYukle("tumBilgiler.json");
+    }
+
+    private void testVerileriEkle() {
+        Ders ders1 = new Ders();
+        ders1.dersKodu = "MAT101";
+        ders1.dersAd = "Matematik I";
+        ders1.dersDonem = "Bahar 2024";
+        ders1.ogretimGorevlisi = "Ahmet Yılmaz";
+        dersListesi.add(ders1);
+
+        Ders ders2 = new Ders();
+        ders2.dersKodu = "FIZ101";
+        ders2.dersAd = "Fizik I";
+        ders2.dersDonem = "Bahar 2024";
+        ders2.ogretimGorevlisi = "Mehmet Demir";
+        dersListesi.add(ders2);
+
+        Ogrenci ogrenci1 = new Ogrenci();
+        ogrenci1.ogrenciNo = "12345";
+        ogrenci1.ogrenciAd = "Ali";
+        ogrenci1.ogrenciSoyad = "Yılmaz";
+        ogrenci1.ogrenciBolum = "Bilgisayar Muhendisligi";
+        ogrenci1.ogrenciDersler.add("MAT101");
+        ogrenci1.ogrenciDersler.add("FIZ101");
+        ogrenciListesi.add(ogrenci1);
+
+        Ogrenci ogrenci2 = new Ogrenci();
+        ogrenci2.ogrenciNo = "67890";
+        ogrenci2.ogrenciAd = "Ayse";
+        ogrenci2.ogrenciSoyad = "Kara";
+        ogrenci2.ogrenciBolum = "Makine Muhendisligi";
+        ogrenci2.ogrenciDersler.add("FIZ101");
+        ogrenciListesi.add(ogrenci2);
+
+        OgretimGorevlisi ogretimGorevlisi1 = new OgretimGorevlisi();
+        ogretimGorevlisi1.ogretmenNo = "G123";
+        ogretimGorevlisi1.ad = "Fatma";
+        ogretimGorevlisi1.soyad = "Demir";
+        ogretimGorevlisi1.bolum = "Bilgisayar Muhendisligi";
+        ogretimGorevlisi1.verdigiDersler.add("MAT101");
+        ogretimGorevlisiListesi.add(ogretimGorevlisi1);
+
+        OgretimGorevlisi ogretimGorevlisi2 = new OgretimGorevlisi();
+        ogretimGorevlisi2.ogretmenNo = "M456";
+        ogretimGorevlisi2.ad = "Hasan";
+        ogretimGorevlisi2.soyad = "Yıldız";
+        ogretimGorevlisi2.bolum = "Fizik";
+        ogretimGorevlisi2.verdigiDersler.add("FIZ101");
+        ogretimGorevlisiListesi.add(ogretimGorevlisi2);
+    }
+
+    private void tumBilgileriKaydet(String dosyaAdi) {
+        try (ObjectOutputStream outputStream = new ObjectOutputStream(new FileOutputStream(dosyaAdi))) {
+            Map<String, ArrayList<?>> tumBilgiler = new HashMap<>();
+            tumBilgiler.put("DersListesi", dersListesi);
+            tumBilgiler.put("OgrenciListesi", ogrenciListesi);
+            tumBilgiler.put("OgretimGorevlisiListesi", ogretimGorevlisiListesi);
+            outputStream.writeObject(tumBilgiler);
+            System.out.println("Tüm bilgiler dosyaya kaydedildi.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void tumBilgileriYukle(String dosyaAdi) {
+        try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(dosyaAdi))) {
+            Map<String, ArrayList<?>> tumBilgiler = (Map<String, ArrayList<?>>) inputStream.readObject();
+            dersListesi = tumBilgiler.get("DersListesi");
+            ogrenciListesi = tumBilgiler.get("OgrenciListesi");
+            ogretimGorevlisiListesi = tumBilgiler.get("OgretimGorevlisiListesi");
+            System.out.println("Tüm bilgiler dosyadan yüklendi.");
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
